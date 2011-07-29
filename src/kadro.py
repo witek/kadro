@@ -3,6 +3,8 @@
 # Copyright 2011 Witoslaw Koczewski (wi@koczewski.de)
 
 import os
+import gtk
+import gtkmozembed
 
 class Config:
     
@@ -27,8 +29,6 @@ class Browser:
     
     def start(self):
         
-        import gtk
-        import gtkmozembed
         
         def onDestroy(mozembed):
             gtk.main_quit()
@@ -90,7 +90,7 @@ def parseargs():
 def startbrowser(site, config):
     site_dir = config.site_dir(site)
     if not os.path.exists(site_dir):
-        print "Site dir does not exist: " + site_dir
+        showerror(None, "Site dir does not exist: " + site_dir)
         startconfigurator(config)
         return
     Browser(site).start()
@@ -98,11 +98,14 @@ def startbrowser(site, config):
 
 def startconfigurator(config):
     Configurator().start()
-    
 
-#
-# script
-#
+
+def showerror(parent, message):
+    print "ERROR: " + message
+    md = gtk.MessageDialog(parent, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, message)
+    md.run()
+    md.destroy()    
+
 
 args = parseargs()
 
