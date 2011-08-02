@@ -5,6 +5,7 @@
 import os
 import gtk
 import gtkmozembed
+import json
 
 class Config:
     
@@ -13,7 +14,17 @@ class Config:
     
     def site_dir(self, site):
         return self.sites_dir + "/" + site
-            
+
+    def load_site_config(self, site):
+        config_file_path = self.site_dir(site) + "/config.json"
+        if not os.path.exists(config_file_path):
+            return {}
+        config_file = open(config_file_path)
+        json_data = json.load(config_file)
+        config_file.close()
+        print json_data["url"]
+        return json_data
+                    
 
 class Browser:
     
@@ -34,10 +45,10 @@ class Browser:
             gtk.main_quit()
 
         def onOpenUri(mozembed, uri):
-            print "Requested URI: " +uri
+            print "Requested URI: " + uri
             return False
 
-        site_dir = config.sites_dir(self.site)
+        site_dir = config.site_dir(self.site)
 
         print "Starting site: " + site_dir
         self.updateSelf()
@@ -63,10 +74,18 @@ class Browser:
     def updateSelf(self):
         if not self.site:
             raise "self.site not set"
+
+        site_config = config.load_site_config(self.site)
+        
         if not self.url:
-            self.url = self.site
+            self.url = site_config["url"]
+            if not self.url:
+                raise "URL not defined for site " + self.site
+            
         if not self.title:
-            self.title = self.site
+            self.title = site_config["title"]
+            if not self.title:
+                self.title = self.site
         if not self.width:
             self.width = 1200
         if not self.height:
@@ -82,7 +101,7 @@ class Configurator:
 def parseargs():
     import argparse
     parser = argparse.ArgumentParser(description='Kadro dedicated browser.')
-    parser.add_argument('site', nargs='?', help='name of the site to start')
+    parser.add_argument('site', nargs='?', help='site of the site to start')
     args = parser.parse_args()
     return args
 
