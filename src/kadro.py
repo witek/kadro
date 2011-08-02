@@ -23,6 +23,12 @@ class Config:
     def get_site_dir(self, site):
         return self.sites_dir + "/" + site
 
+    def get_launcher_file_path(self, site):
+        return os.getenv("HOME") + "/.local/share/applications/kadro-" + site + ".desktop"
+
+    def get_starter_file_path(self, site):
+        return self.get_site_dir(site) + "/start.sh"
+
     def load_site_config(self, site):
         config_file_path = self.get_site_dir(site) + "/config.json"
         print("Loading site config: " + config_file_path)
@@ -43,8 +49,8 @@ class Config:
             configs.append(config)
         return configs
     
-    def save_site_config(self, config):
-        site = config["name"]
+    def save_site_config(self, site_config):
+        site = site_config["name"]
         site_dir = self.get_site_dir(site)
         if not os.path.exists(site_dir):
             os.mkdir(site_dir)
@@ -52,17 +58,31 @@ class Config:
         config_file_path = site_dir + "/config.json"
         print "Saving site: " + config_file_path
         with open(config_file_path, mode='w') as file:
-            json.dump(config, file)
+            json.dump(site_config, file)
         
-        starter_file_path = site_dir + "/start.sh"
+        starter_file_path = self.get_starter_file_path(site)
         with open(starter_file_path, mode='w') as file:
             file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " " + site)
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
         
+        launcher_file_path = self.get_launcher_file_path(site)
+        with open(launcher_file_path, mode='w') as file:
+            file.write("[Desktop Entry]\n")
+            file.write("Name=" + site_config["title"] + "\n")
+            file.write("Comment=Open site with Kadro: " + site + " -> " + site_config["url"] + "\n")
+            file.write("Icon=\n")
+            file.write("Exec=" + starter_file_path + "\n")
+            file.write("Categories=Network;\n")
+            file.write("Type=Application\n")
     
     def delete_site(self, site):
         site_dir = self.get_site_dir(site)
         print "Deleting site: " + site_dir
+
+        launcher_file_path = self.get_launcher_file_path(site)
+        if os.path.exists(launcher_file_path):
+            os.remove(launcher_file_path)
+        
         if not os.path.exists(site_dir):
             return
         tmp_dir = self.work_dir + "/tmp"
@@ -72,8 +92,7 @@ class Config:
         shutil.rmtree(tmp_dir, True)
 
     def start_site(self, site):
-        site_dir = self.get_site_dir(site)
-        starter_file_path = site_dir + "/start.sh"
+        starter_file_path = self.get_starter_file_path(site)
         print "Starting site: " + starter_file_path
         #ret = os.spawnv(os.P_NOWAIT, starter_file_path,[])
         #pipe = os.popen('{ ' + starter_file_path + '; } 2>&1', 'r')
@@ -268,7 +287,11 @@ class Configurator:
             gtk.main_quit()
 
         def name_func(column, cell, model, iter):
-            cell.set_property('text', model.get_value(iter, 0)["title"])
+            title = "untitled"
+            site_config = model.get_value(iter, 0)
+            if site_config.has_key("title"):
+                title = site_config["title"]
+            cell.set_property('text', title)
 
         def on_start_site(button):
             site_config = self.get_selected_site_config()
