@@ -29,6 +29,10 @@ class Config:
     def get_starter_file_path(self, site):
         return self.get_site_dir(site) + "/start.sh"
 
+    def has_site(self, site):
+        site_dir = self.get_site_dir(site)
+        return os.path.exists(site_dir)
+
     def load_site_config(self, site):
         config_file_path = self.get_site_dir(site) + "/config.json"
         print("Loading site config: " + config_file_path)
@@ -39,6 +43,7 @@ class Config:
         config_file.close()
         
         data["name"] = site
+        data["persistant"] = True
         
         return data
     
@@ -191,6 +196,10 @@ class SiteConfigurator:
                     showerror(self.win, '"' + label + '" is mandatory')
                     return
                 self.site_config[property_name] = value.strip()
+            site = self.site_config["name"]
+            if (not self.site_config.has_key("persistant")) and config.has_site(site):
+                    showerror(self.win, 'Site with the name "' + site + '" already exists.')
+                    return                
             config.save_site_config(self.site_config)
             self.win.hide_all()
             self.save_callback()
