@@ -29,6 +29,13 @@ class Config:
     def get_starter_file_path(self, site):
         return self.get_site_dir(site) + "/start.sh"
 
+    def get_site_icon_path(self, site):
+        site_dir = self.get_site_dir(site)
+        png_file = site_dir + "/icon.png"
+        if os.path.exists(png_file):
+            return png_file
+        return None
+
     def has_site(self, site):
         site_dir = self.get_site_dir(site)
         return os.path.exists(site_dir)
@@ -70,12 +77,15 @@ class Config:
             file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " " + site)
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
         
+        icon_path = self.get_site_icon_path(site)
+        
         launcher_file_path = self.get_launcher_file_path(site)
         with open(launcher_file_path, mode='w') as file:
             file.write("[Desktop Entry]\n")
             file.write("Name=" + site_config["title"] + "\n")
             file.write("Comment=Open site with Kadro: " + site + " -> " + site_config["url"] + "\n")
-            file.write("Icon=\n")
+            if icon_path:
+                file.write("Icon=" + icon_path + "\n")
             file.write("Exec=" + starter_file_path + "\n")
             file.write("Categories=Network;\n")
             file.write("Type=Application\n")
@@ -151,6 +161,9 @@ class Browser:
         self.win.set_title(self.title)
         self.win.set_default_size(self.width, self.height)
         self.win.set_position(gtk.WIN_POS_CENTER)
+        icon_path = config.get_site_icon_path(site)
+        if icon_path:
+            self.win.set_icon_from_file(icon_path)
         self.win.add(self.mozembed)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
