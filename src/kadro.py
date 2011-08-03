@@ -31,9 +31,18 @@ class Config:
 
     def get_site_icon_path(self, site):
         site_dir = self.get_site_dir(site)
-        png_file = site_dir + "/icon.png"
-        if os.path.exists(png_file):
-            return png_file
+        file = site_dir + "/icon.svg"
+        if os.path.exists(file):
+            return file
+        file = site_dir + "/icon.png"
+        if os.path.exists(file):
+            return file
+        file = site_dir + "/icon.gif"
+        if os.path.exists(file):
+            return file
+        file = site_dir + "/icon.jpg"
+        if os.path.exists(file):
+            return file
         return None
 
     def has_site(self, site):
