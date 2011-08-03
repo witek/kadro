@@ -83,7 +83,7 @@ class Config:
         
         starter_file_path = self.get_starter_file_path(site)
         with open(starter_file_path, mode='w') as file:
-            file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " " + site)
+            file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " $* " + site)
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
         
         icon_path = self.get_site_icon_path(site)
@@ -115,12 +115,15 @@ class Config:
         shutil.move(site_dir, tmp_dir)
         shutil.rmtree(tmp_dir, True)
 
-    def start_site(self, site):
+    def start_site(self, site, config_mode=False):
         starter_file_path = self.get_starter_file_path(site)
         print "Starting site: " + starter_file_path
         #ret = os.spawnv(os.P_NOWAIT, starter_file_path,[])
         #pipe = os.popen('{ ' + starter_file_path + '; } 2>&1', 'r')
-        os.system(starter_file_path + " &")
+        config_option = ""
+        if config_mode:
+            config_option = " --config"
+        os.system(starter_file_path + config_option + " &")
 
 class Browser:
     
@@ -326,13 +329,11 @@ class Configurator:
     sites_list = None
     sites_list_model = None
     edit_button = None
+    config_button = None
     delete_button = None
     
     def start(self):
         print "Starting configurator"
-
-        def onDestroy(mozembed):
-            gtk.main_quit()
 
         def name_func(column, cell, model, iter):
             title = "untitled"
@@ -341,9 +342,16 @@ class Configurator:
                 title = site_config["title"]
             cell.set_property('text', title)
 
+        def on_destroy(mozembed):
+            gtk.main_quit()
+
         def on_start_site(button):
             site_config = self.get_selected_site_config()
             config.start_site(site_config["name"])
+
+        def on_config_site(button):
+            site_config = self.get_selected_site_config()
+            config.start_site(site_config["name"], config_mode=True)            
 
         def on_edit_site(button):
             site_config = self.get_selected_site_config()
@@ -373,19 +381,23 @@ class Configurator:
         self.start_button = gtk.Button("Start")
         self.start_button.connect("clicked", on_start_site)
         
-        self.edit_button = gtk.Button("Edit site...")
+        self.edit_button = gtk.Button("Properties")
         self.edit_button.connect("clicked", on_edit_site)
         
-        self.delete_button = gtk.Button("Delete site")
+        self.config_button = gtk.Button("Mozilla Config")
+        self.config_button.connect("clicked", on_config_site)
+        
+        self.delete_button = gtk.Button("Delete")
         self.delete_button.connect("clicked", on_delete_site)
         
-        add_button = gtk.Button("Add site...")
+        add_button = gtk.Button("New Site")
         add_button.connect("clicked", on_add_site)
 
         buttons_box = gtk.VBox()
         buttons_box.set_spacing(5)
         buttons_box.pack_start(self.start_button, False, False, 10)
         buttons_box.pack_start(self.edit_button, False, False)
+        buttons_box.pack_start(self.config_button, False, False)
         buttons_box.pack_start(self.delete_button, False, False)
         buttons_box.pack_start(add_button, False, False, 10)
 
@@ -398,7 +410,7 @@ class Configurator:
         self.win.set_position(gtk.WIN_POS_CENTER)
         self.win.set_border_width(10)
         self.win.add(main_box)
-        self.win.connect("destroy", onDestroy)
+        self.win.connect("destroy", on_destroy)
         self.win.show_all()
         
         self.update_sites_list()
@@ -408,6 +420,7 @@ class Configurator:
         sensitive = self.get_selected_site_config() != None
         self.start_button.set_sensitive(sensitive)
         self.edit_button.set_sensitive(sensitive)
+        self.config_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
         
     def update_sites_list(self):
@@ -429,18 +442,22 @@ class Configurator:
 def parseargs():
     import argparse
     parser = argparse.ArgumentParser(description='Kadro dedicated browser.')
-    parser.add_argument('site', nargs='?', help='site of the site to start')
+    parser.add_argument('site',nargs='?', help='site of the site to start')
+    parser.add_argument('-c', '--config', action='store_true', help='Start with Mozilla configuration page')
     args = parser.parse_args()
     return args
 
 
-def startbrowser(site, config):
+def startbrowser(site, config, config_mode):
     site_dir = config.get_site_dir(site)
     if not os.path.exists(site_dir):
         showerror(None, "Site dir does not exist: " + site_dir)
         startconfigurator(config)
         return
-    Browser(site).start()
+    browser = Browser(site)
+    if config_mode:
+        browser.url = "about:config"
+    browser.start()
 
 
 def startconfigurator(config):
@@ -460,8 +477,9 @@ print "Initializing Kadro"
 config = Config()
 
 site = args.site
+mozconfig = args.config
 
 if site:
-    startbrowser(site, config)
+    startbrowser(site, config, config_mode=mozconfig)
 else:
     startconfigurator(config)
