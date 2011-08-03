@@ -8,6 +8,7 @@ import gtkmozembed
 import json
 import shutil
 import stat
+import webbrowser
 
 class Config:
     
@@ -156,6 +157,15 @@ class Browser:
         def on_open_uri(mozembed, uri):
             print "Requested URI: " + uri
             return False
+        
+        def on_new_window(mozembed, retval, chromemask):
+            url = mozembed.get_link_message()
+            if not url:
+                print "ERROR: new-window without URL"
+                return None
+            print "Calling default web browser: " + url
+            webbrowser.open(url)
+            return None
 
         site_dir = config.get_site_dir(self.site)
 
@@ -167,6 +177,7 @@ class Browser:
         self.mozembed = gtkmozembed.MozEmbed()
         self.mozembed.load_url(self.url)
         self.mozembed.connect("open-uri", on_open_uri)
+        self.mozembed.connect("new-window", on_new_window)
         self.mozembed.show()
 
         self.win = gtk.Window()
@@ -179,7 +190,7 @@ class Browser:
         self.win.add(self.mozembed)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
-        self.win.show()
+        self.win.show_all()
         
         gtk.main()
         
