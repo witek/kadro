@@ -106,6 +106,7 @@ class Config:
 class Browser:
     
     site = None
+    site_config = {}
     title = None
     url = None
     width = None
@@ -117,10 +118,20 @@ class Browser:
     
     def start(self):
         
-        def onDestroy(mozembed):
+        def on_destroy(mozembed):
             gtk.main_quit()
 
-        def onOpenUri(mozembed, uri):
+        def on_resize(mozembed):
+            size = self.win.get_size()
+            width = size[0]
+            height = size[1]
+            if self.site_config.has_key("width") and self.site_config["width"] == width and self.site_config.has_key("height") and self.site_config["height"] == height:
+                return
+            self.site_config["width"] = width
+            self.site_config["height"] = height
+            config.save_site_config(self.site_config)
+
+        def on_open_uri(mozembed, uri):
             print "Requested URI: " + uri
             return False
 
@@ -133,15 +144,16 @@ class Browser:
         
         self.mozembed = gtkmozembed.MozEmbed()
         self.mozembed.load_url(self.url)
-        self.mozembed.set_size_request(self.width, self.height)
-        self.mozembed.connect("open-uri", onOpenUri)
+        self.mozembed.connect("open-uri", on_open_uri)
         self.mozembed.show()
 
         self.win = gtk.Window()
         self.win.set_title(self.title)
+        self.win.set_default_size(self.width, self.height)
         self.win.set_position(gtk.WIN_POS_CENTER)
         self.win.add(self.mozembed)
-        self.win.connect("destroy", onDestroy)
+        self.win.connect("destroy", on_destroy)
+        self.win.connect('check-resize', on_resize)
         self.win.show()
         
         gtk.main()
@@ -151,22 +163,27 @@ class Browser:
         if not self.site:
             raise "self.site not set"
 
-        site_config = config.load_site_config(self.site)
+        self.site_config = config.load_site_config(self.site)
         
+        if not self.url and self.site_config.has_key("url"):
+            self.url = self.site_config["url"]
         if not self.url:
-            self.url = site_config["url"]
-            if not self.url:
-                raise "URL not defined for site " + self.site
+            raise "URL not defined for site " + self.site
             
+        if not self.title and self.site_config.has_key("title"):
+            self.title = self.site_config["title"]
         if not self.title:
-            self.title = site_config["title"]
-            if not self.title:
-                self.title = self.site
+            self.title = self.site
         
+        if not self.width and self.site_config.has_key("width"):
+            self.width = self.site_config["width"]
         if not self.width:
-            self.width = 1200
+            self.width = 800
+
+        if not self.height and self.site_config.has_key("height"):
+            self.height = self.site_config["height"]
         if not self.height:
-            self.height = 800
+            self.height = 600
 
 
 class SiteConfigurator:
