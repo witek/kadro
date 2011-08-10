@@ -9,4 +9,4 @@ Homepage: http://koczewski.de
 Package: kadro
 Architecture: all
 Depends: python (>= 2.6), python-gtk2, python-gtkmozembed
-Description: Webapps as applications. Replacement for Mozilla Prism.
+Description: Kadro creates launchers which start a simple window for a specified website.

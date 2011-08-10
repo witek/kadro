@@ -1,0 +1,34 @@
+KADRO
+
+    Kadro creates launchers which start a simple window for a specified
+    website.
+
+    https://github.com/witek/kadro
+    mailto:wi@koczewski.de
+
+	
+DESCRIPTION
+
+	Kadro provides a user interface which one can use to create launchers
+	for websites. These launchers start a simplified browser which contains
+	the specified website.
+    
+    Similar to Mozilla Prism
+    
+
+COPYING
+
+    Copyright 2011, Witoslaw Koczewski
+
+    Kadro is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Kadro is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Kadro. If not, see <http://www.gnu.org/licenses/>.
