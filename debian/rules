@@ -19,6 +19,8 @@ install: build
 	dh_testroot
 	dh_prep
 	dh_installdirs
+	dh_auto_install
+	dh_install	
 	$(MAKE) DESTDIR=$(CURDIR)/debian/kadro install
 binary-arch: build install
 	# emptyness

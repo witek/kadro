@@ -1,3 +1,7 @@
+kadro (1.0.1) unstable; urgency=low
+  * Debianization
+ -- Witoslaw Koczewski <wi@koczewski.de>  Wed, 10 Aug 2011 20:42:04 +0100
+
 kadro (1.0) unstable; urgency=low
   * First release
  -- Witoslaw Koczewski <wi@koczewski.de>  Wed, 10 Aug 2011 20:41:04 +0100
