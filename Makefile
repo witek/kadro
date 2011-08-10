@@ -5,7 +5,8 @@ clean:
 install:
 	mkdir -p $(BINDIR)
 	cp src/kadro.py $(BINDIR)/kadro
-	/usr/share/applications
+	cp kadro.desktop $(DATADIR)/applications/kadro.desktop
 uninstall:
 	rm -f $(BINDIR)/kadro
+	rm -f $(DATADIR)/applications/kadro.desktop
 
