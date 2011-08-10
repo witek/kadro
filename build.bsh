@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BUILDDIR=build
+DEBIANDIR=$BUILDDIR/debian
+
+rm -rf $BUILDDIR
+
+mkdir -p $DEBIANDIR
+cp -r debian src kadro.desktop Makefile README $DEBIANDIR
+
+cd $DEBIANDIR
+debuild
