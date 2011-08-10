@@ -182,7 +182,7 @@ class Browser:
                 return
             self.site_config["width"] = width
             self.site_config["height"] = height
-            config.save_site_config(self.site_config)
+            config.save_site_config(self.site_config, None)
 
         def on_open_uri(mozembed, uri):
             print "Requested URI: " + uri
