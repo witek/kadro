@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Kadro
+Comment=Start Kadro
+Exec=/usr/bin/kadro
+Categories=Network;
+Type=Application
