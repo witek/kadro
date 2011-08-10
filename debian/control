@@ -1,7 +1,7 @@
 Source: kadro
-Section: python
+Section: web
 Priority: extra
-Maintainer: Witoslaw Koczewski 
+Maintainer: Witoslaw Koczewski <wi@koczewski.de>
 Build-Depends: debhelper (>= 7), python-support
 Standards-Version: 3.8.0
 Homepage: http://koczewski.de
