@@ -44,8 +44,14 @@ class Config:
         file = site_dir + "/icon.jpg"
         if os.path.exists(file):
             return file
+        file = site_dir + "/icon.tif"
+        if os.path.exists(file):
+            return file
+        file = site_dir + "/icon.xpm"
+        if os.path.exists(file):
+            return file
         return None
-
+    
     def has_site(self, site):
         site_dir = self.get_site_dir(site)
         return os.path.exists(site_dir)
@@ -71,7 +77,7 @@ class Config:
             configs.append(config)
         return configs
     
-    def save_site_config(self, site_config):
+    def save_site_config(self, site_config, new_icon_path):
         site = site_config["name"]
         site_dir = self.get_site_dir(site)
         if not os.path.exists(site_dir):
@@ -86,6 +92,30 @@ class Config:
         with open(starter_file_path, mode='w') as file:
             file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " $* " + site)
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
+        
+        if new_icon_path:
+            tmp_file = site_dir+"/icon.tmp"
+            shutil.copyfile(new_icon_path, tmp_file)
+            file = site_dir + "/icon.svg"
+            if os.path.exists(file):
+                os.remove(file)
+            file = site_dir + "/icon.png"
+            if os.path.exists(file):
+                os.remove(file)
+            file = site_dir + "/icon.gif"
+            if os.path.exists(file):
+                os.remove(file)
+            file = site_dir + "/icon.jpg"
+            if os.path.exists(file):
+                os.remove(file)
+            file = site_dir + "/icon.tif"
+            if os.path.exists(file):
+                os.remove(file)
+            file = site_dir + "/icon.xpm"
+            if os.path.exists(file):
+                os.remove(file)
+            suffix = os.path.splitext(new_icon_path)[1];
+            os.rename(tmp_file, site_dir + "/icon" + suffix)
         
         icon_path = self.get_site_icon_path(site)
         
@@ -231,6 +261,7 @@ class SiteConfigurator:
     entries_table = None
     last_entry_row = 0
     name_entry = None
+    icon_path = None
     
     def __init__(self, site_config, save_callback):
         self.site_config = site_config
@@ -253,7 +284,8 @@ class SiteConfigurator:
             if (not self.site_config.has_key("persistant")) and config.has_site(site):
                     showerror(self.win, 'Site with the name "' + site + '" already exists.')
                     return                
-            config.save_site_config(self.site_config)
+            config.save_site_config(self.site_config, self.icon_path)
+            
             self.win.hide_all()
             self.save_callback()
         
@@ -294,6 +326,7 @@ class SiteConfigurator:
         self.append_entry("Title", "title", extension_func=title_extension_func)
         self.append_entry("URL", "url")
         self.append_entry("Name", "name", readonly=name_readonly, extension_func=name_extension)
+        self.append_icon_editor()
         
         cancel_button = gtk.Button("Cancel")
         cancel_button.connect("clicked", on_cancel)
@@ -315,6 +348,67 @@ class SiteConfigurator:
         self.win.set_border_width(10)
         self.win.add(main_box)
         self.win.show_all()
+
+    def append_icon_editor(self):
+        label = gtk.Label("Icon")
+        
+        site = None
+        if self.site_config.has_key("name"):
+            site = self.site_config["name"]
+        
+        image = gtk.Image()        
+        image.set_size_request(48, 48)
+        
+        if site:
+            self.icon_path = config.get_site_icon_path(site)
+
+        def update_image():        
+            if self.icon_path:
+                image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.icon_path).scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR))
+
+        update_image()
+
+        def on_select_icon(button):
+            dialog = gtk.FileChooserDialog("Open..", self.win, gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            dialog.set_default_response(gtk.RESPONSE_OK)
+
+            filter = gtk.FileFilter()
+            filter.set_name("Images")
+            filter.add_mime_type("image/png")
+            filter.add_mime_type("image/jpeg")
+            filter.add_mime_type("image/gif")
+            filter.add_pattern("*.png")
+            filter.add_pattern("*.jpg")
+            filter.add_pattern("*.gif")
+            filter.add_pattern("*.tif")
+            filter.add_pattern("*.xpm")
+            filter.add_pattern("*.svg")
+            dialog.add_filter(filter)
+            
+            if self.icon_path:
+                dialog.set_filename(self.icon_path)
+            
+            usr_share_icons_path = "/usr/share/icons"
+            if os.path.exists(usr_share_icons_path):
+                dialog.add_shortcut_folder(usr_share_icons_path)
+            
+            response = dialog.run()
+            if response == gtk.RESPONSE_OK:
+                self.icon_path = dialog.get_filename()
+                update_image()
+            dialog.destroy()
+        
+        button = gtk.Button()
+        button.set_image(image)
+        button.connect("clicked", on_select_icon)
+
+        box = gtk.HBox()
+        box.pack_start(button, False, False)
+        
+        row = self.last_entry_row + 1
+        self.entries_table.attach(label, 0, 1, row, row + 1)
+        self.entries_table.attach(box, 1, 2, row, row + 1)
+        self.last_entry_row = row
 
     def append_entry(self, label_text, property_name, readonly=False, extension_func=None):
         label = gtk.Label(label_text)
@@ -453,7 +547,7 @@ class Configurator:
 def parseargs():
     import argparse
     parser = argparse.ArgumentParser(description='Kadro dedicated browser.')
-    parser.add_argument('site',nargs='?', help='site of the site to start')
+    parser.add_argument('site', nargs='?', help='site of the site to start')
     parser.add_argument('-c', '--config', action='store_true', help='Start with Mozilla configuration page')
     args = parser.parse_args()
     return args
