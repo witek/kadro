@@ -14,6 +14,7 @@ class Config:
     
     work_dir = os.getenv("HOME") + "/.kadro"
     sites_dir = work_dir + "/sites"
+    icons_dir = os.getenv("HOME") + "/.icons"
 
     def __init__(self):
         if not os.path.exists(self.work_dir):
@@ -31,23 +32,23 @@ class Config:
         return self.get_site_dir(site) + "/start.sh"
 
     def get_site_icon_path(self, site):
-        site_dir = self.get_site_dir(site)
-        file = site_dir + "/icon.svg"
+        icon_name = "kadro-" + site
+        file = self.icons_dir + "/" + icon_name + ".svg"
         if os.path.exists(file):
             return file
-        file = site_dir + "/icon.png"
+        file = self.icons_dir + "/" + icon_name + ".png"
         if os.path.exists(file):
             return file
-        file = site_dir + "/icon.gif"
+        file = self.icons_dir + "/" + icon_name + ".gif"
         if os.path.exists(file):
             return file
-        file = site_dir + "/icon.jpg"
+        file = self.icons_dir + "/" + icon_name + ".jpg"
         if os.path.exists(file):
             return file
-        file = site_dir + "/icon.tif"
+        file = self.icons_dir + "/" + icon_name + ".tif"
         if os.path.exists(file):
             return file
-        file = site_dir + "/icon.xpm"
+        file = self.icons_dir + "/" + icon_name + ".xpm"
         if os.path.exists(file):
             return file
         return None
@@ -96,36 +97,34 @@ class Config:
         if new_icon_path:
             tmp_file = site_dir+"/icon.tmp"
             shutil.copyfile(new_icon_path, tmp_file)
-            file = site_dir + "/icon.svg"
+            icon_name = "kadro-" + site
+            file = self.icons_dir + "/" + icon_name + ".svg"
             if os.path.exists(file):
                 os.remove(file)
-            file = site_dir + "/icon.png"
+            file = self.icons_dir + "/" + icon_name + ".png"
             if os.path.exists(file):
                 os.remove(file)
-            file = site_dir + "/icon.gif"
+            file = self.icons_dir + "/" + icon_name + ".gif"
             if os.path.exists(file):
                 os.remove(file)
-            file = site_dir + "/icon.jpg"
+            file = self.icons_dir + "/" + icon_name + ".jpg"
             if os.path.exists(file):
                 os.remove(file)
-            file = site_dir + "/icon.tif"
+            file = self.icons_dir + "/" + icon_name + ".tif"
             if os.path.exists(file):
                 os.remove(file)
-            file = site_dir + "/icon.xpm"
+            file = self.icons_dir + "/" + icon_name + ".xpm"
             if os.path.exists(file):
                 os.remove(file)
             suffix = os.path.splitext(new_icon_path)[1];
-            os.rename(tmp_file, site_dir + "/icon" + suffix)
-        
-        icon_path = self.get_site_icon_path(site)
+            os.rename(tmp_file, self.icons_dir + "/" + icon_name + suffix)
         
         launcher_file_path = self.get_launcher_file_path(site)
         with open(launcher_file_path, mode='w') as file:
             file.write("[Desktop Entry]\n")
             file.write("Name=" + site_config["title"] + "\n")
             file.write("Comment=Open site with Kadro: " + site + " -> " + site_config["url"] + "\n")
-            if icon_path:
-                file.write("Icon=" + icon_path + "\n")
+            file.write("Icon=kadro-" + site + "\n")
             file.write("Exec=" + starter_file_path + "\n")
             file.write("Categories=Network;\n")
             file.write("Type=Application\n")
