@@ -1,3 +1,7 @@
+kadro (1.0.4) unstable; urgency=low
+  * Kadro icon
+ -- Witoslaw Koczewski <wi@koczewski.de>  Wed, 09 Dec 2011 11:22:04 +0100
+
 kadro (1.0.3) unstable; urgency=low
   * Icon selector with SVG support
  -- Witoslaw Koczewski <wi@koczewski.de>  Wed, 09 Dec 2011 11:07:04 +0100

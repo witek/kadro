@@ -6,7 +6,7 @@ DEBIANDIR=$BUILDDIR/debian
 rm -rf $BUILDDIR
 
 mkdir -p $DEBIANDIR
-cp -r debian src kadro.desktop Makefile README $DEBIANDIR
+cp -r debian src kadro.desktop kadro.svg Makefile README $DEBIANDIR
 
 cd $DEBIANDIR
 debuild

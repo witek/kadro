@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Kadro
+Icon=kadro
 Comment=Start Kadro
 Exec=/usr/bin/kadro
 Categories=Network;
