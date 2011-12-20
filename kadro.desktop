@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Kadro
 Icon=kadro
-Comment=Start Kadro
-Exec=/usr/bin/kadro
+Comment=Start Kadro Configurator
+Exec=/usr/bin/kadro-configurator
 Categories=Network;
 Type=Application

@@ -1,5 +1,3 @@
-#! /usr/bin/python
-
 # Copyright 2011 Witoslaw Koczewski (wi@koczewski.de)
 
 import os
@@ -29,10 +27,13 @@ class Config:
         return os.getenv("HOME") + "/.local/share/applications/kadro-" + site + ".desktop"
 
     def get_starter_file_path(self, site):
-        return self.get_site_dir(site) + "/start.sh"
+        return self.get_site_dir(site) + "/" + site + ".py"
+
+    def get_site_icon_name(self, site):
+        return "kadro-" + site
 
     def get_site_icon_path(self, site):
-        icon_name = "kadro-" + site
+        icon_name = self.get_site_icon_name(site)
         file = self.icons_dir + "/" + icon_name + ".svg"
         if os.path.exists(file):
             return file
@@ -68,6 +69,18 @@ class Config:
         
         data["name"] = site
         data["persistant"] = True
+
+        oldstarter = self.get_site_dir(site) + "/start.sh"
+        if os.path.exists(oldstarter):
+            print("Upgrading site config: " + config_file_path)
+            self.save_site_config(data, None)
+            os.remove(oldstarter)
+
+        oldstarter = self.get_site_dir(site) + "/start.py"
+        if os.path.exists(oldstarter):
+            print("Upgrading site config: " + config_file_path)
+            self.save_site_config(data, None)
+            os.remove(oldstarter)
         
         return data
     
@@ -91,11 +104,13 @@ class Config:
         
         starter_file_path = self.get_starter_file_path(site)
         with open(starter_file_path, mode='w') as file:
-            file.write("#!/bin/sh\n" + os.path.realpath(__file__) + " $* " + site)
+            file.write("#! /usr/bin/python\n")
+            file.write("import kadro\n")
+            file.write("kadro.startbrowser('" + site + "')\n")
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
         
         if new_icon_path:
-            tmp_file = site_dir+"/icon.tmp"
+            tmp_file = site_dir + "/icon.tmp"
             shutil.copyfile(new_icon_path, tmp_file)
             icon_name = "kadro-" + site
             file = self.icons_dir + "/" + icon_name + ".svg"
@@ -213,9 +228,10 @@ class Browser:
         self.win.set_title(self.title)
         self.win.set_default_size(self.width, self.height)
         self.win.set_position(gtk.WIN_POS_CENTER)
-        icon_path = config.get_site_icon_path(site)
+        icon_path = config.get_site_icon_path(self.site)
         if icon_path:
             self.win.set_icon_from_file(icon_path)
+        self.win.set_icon_name(config.get_site_icon_name(self.site))
         self.win.add(self.mozembed)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
@@ -554,19 +570,19 @@ def parseargs():
     return args
 
 
-def startbrowser(site, config, config_mode):
+def startbrowser(site):
     site_dir = config.get_site_dir(site)
     if not os.path.exists(site_dir):
         showerror(None, "Site dir does not exist: " + site_dir)
         startconfigurator(config)
         return
     browser = Browser(site)
-    if config_mode:
+    if mozconfig:
         browser.url = "about:config"
     browser.start()
 
 
-def startconfigurator(config):
+def startconfigurator():
     Configurator().start()
 
 
@@ -574,18 +590,12 @@ def showerror(parent, message):
     print "ERROR: " + message
     md = gtk.MessageDialog(parent, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, message)
     md.run()
-    md.destroy()    
+    md.destroy()  
 
-
-args = parseargs()
-
+    
 print "Initializing Kadro"
 config = Config()
 
-site = args.site
-mozconfig = args.config
+args = parseargs()
 
-if site:
-    startbrowser(site, config, config_mode=mozconfig)
-else:
-    startconfigurator(config)
+mozconfig = args.config
