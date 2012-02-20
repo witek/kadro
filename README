@@ -9,9 +9,9 @@ KADRO
 	
 DESCRIPTION
 
-	Kadro provides a user interface which one can use to create launchers
-	for websites. These launchers start a simplified browser which contains
-	the specified website.
+    Kadro provides a user interface which one can use to create launchers
+    for websites. These launchers start a simplified browser which contains
+    the specified website.
     
     Similar to Mozilla Prism.
     
