@@ -1,8 +1,11 @@
 # Copyright 2011 Witoslaw Koczewski (wi@koczewski.de)
 
 import os
+import pygtk
+pygtk.require('2.0')
 import gtk
-import gtkmozembed
+import webkit
+import gobject
 import json
 import shutil
 import stat
@@ -170,7 +173,11 @@ class Config:
             config_option = " --config"
         os.system(starter_file_path + config_option + " &")
 
+
 class Browser:
+    
+    # http://www.eurion.net/python-snippets/snippet/Webkit%20Browser.html
+    # http://webkitgtk.org/reference/webkitgtk/stable/
     
     site = None
     site_config = {}
@@ -178,10 +185,9 @@ class Browser:
     url = None
     width = None
     height = None
-    
+            
     def __init__(self, site):
         self.site = site
-    
     
     def start(self):
         
@@ -203,6 +209,7 @@ class Browser:
             return False
         
         def on_new_window(mozembed, retval, chromemask):
+            print "on_new_window(" + str(mozembed) + ", " + str(retval) + ", " + str(chromemask) + ")"
             url = mozembed.get_link_message()
             if not url:
                 print "ERROR: new-window without URL"
@@ -216,15 +223,21 @@ class Browser:
         print "Starting site: " + site_dir
         self.updateSelf()
         
-        gtkmozembed.set_profile_path(site_dir, "profile")
-        
-        self.mozembed = gtkmozembed.MozEmbed()
-        self.mozembed.load_url(self.url)
-        self.mozembed.connect("open-uri", on_open_uri)
-        self.mozembed.connect("new-window", on_new_window)
-        self.mozembed.show()
+        # TODO gtkmozembed.set_profile_path(site_dir, "profile")
+        #webkit.set_web_database_directory_path(site_dir+"/profile")
 
-        self.win = gtk.Window()
+        #print webkit.WebView.__doc__
+        
+        self.web_view = webkit.WebView()
+        self.web_view.open(self.url)
+        
+        #self.mozembed.connect("open-uri", on_open_uri)
+        #self.mozembed.connect("new-window", on_new_window)
+
+        scroll_window = gtk.ScrolledWindow(None, None)
+        scroll_window.add(self.web_view)
+
+        self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.win.set_title(self.title)
         self.win.set_default_size(self.width, self.height)
         self.win.set_position(gtk.WIN_POS_CENTER)
@@ -232,7 +245,7 @@ class Browser:
         if icon_path:
             self.win.set_icon_from_file(icon_path)
         self.win.set_icon_name(config.get_site_icon_name(self.site))
-        self.win.add(self.mozembed)
+        self.win.add(scroll_window)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
         self.win.show_all()

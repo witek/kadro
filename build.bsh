@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 BUILDDIR=build
 DEBIANDIR=$BUILDDIR/debian
