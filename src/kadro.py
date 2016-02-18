@@ -1,11 +1,12 @@
 # Copyright 2011 Witoslaw Koczewski (wi@koczewski.de)
 
 import os
-import pygtk
-pygtk.require('2.0')
-import gtk
-import webkit
-import gobject
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import WebKit2
+#import pygtk
+#import gobject
 import json
 import shutil
 import stat
@@ -178,6 +179,7 @@ class Browser:
     
     # http://www.eurion.net/python-snippets/snippet/Webkit%20Browser.html
     # http://webkitgtk.org/reference/webkitgtk/stable/
+    # http://webkitgtk.org/reference/webkit2gtk/stable/WebKitCookieManager.html#webkit-cookie-manager-set-persistent-storage
     
     site = None
     site_config = {}
@@ -192,7 +194,7 @@ class Browser:
     def start(self):
         
         def on_destroy(mozembed):
-            gtk.main_quit()
+            Gtk.main_quit()
 
         def on_resize(mozembed):
             size = self.win.get_size()
@@ -225,32 +227,42 @@ class Browser:
         
         # TODO gtkmozembed.set_profile_path(site_dir, "profile")
         #webkit.set_web_database_directory_path(site_dir+"/profile")
+        #cookiejar = libsoup.soup_cookie_jar_text_new(site_dir+'/cookies.txt',False)
+
+        #from gi.repository import Soup
+        #cookiejar = Soup.CookieJarText.new(site_dir + "/cookies.txt", False)
+        #cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
+        #session = WebKit.get_default_session()
+        #session.add_feature(cookiejar)
 
         #print webkit.WebView.__doc__
         
-        self.web_view = webkit.WebView()
-        self.web_view.open(self.url)
+        self.web_view = WebKit2.WebView()
+        #print self.web_view.__doc__
+        #print dir(webkit)
+        self.web_view.load_uri(self.url)
         
         #self.mozembed.connect("open-uri", on_open_uri)
         #self.mozembed.connect("new-window", on_new_window)
 
-        scroll_window = gtk.ScrolledWindow(None, None)
-        scroll_window.add(self.web_view)
+        #scroll_window = Gtk.ScrolledWindow(None, None)
+        #scroll_window.add(self.web_view)
 
-        self.win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.win = Gtk.Window()
         self.win.set_title(self.title)
         self.win.set_default_size(self.width, self.height)
-        self.win.set_position(gtk.WIN_POS_CENTER)
+        #self.win.set_position(Gtk.WIN_POS_CENTER)
         icon_path = config.get_site_icon_path(self.site)
         if icon_path:
             self.win.set_icon_from_file(icon_path)
         self.win.set_icon_name(config.get_site_icon_name(self.site))
-        self.win.add(scroll_window)
+        #self.win.add(scroll_window)
+        self.win.add(self.web_view)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
         self.win.show_all()
         
-        gtk.main()
+        Gtk.main()
         
         
     def updateSelf(self):
@@ -367,7 +379,7 @@ class SiteConfigurator:
         buttons_box.pack_end(cancel_button, False, False, 10)
         
         main_box = gtk.VBox()
-        main_box.pack_start(self.entries_table, True, True)
+        main_box.pack_start(self.entries_table, True, True, 0)
         main_box.pack_start(buttons_box, False, False, 10)
         
         self.win = gtk.Window()
@@ -470,7 +482,7 @@ class Configurator:
     def start(self):
         print "Starting configurator"
 
-        def name_func(column, cell, model, iter):
+        def name_func(column, cell, model, iter, xxx):
             title = "untitled"
             site_config = model.get_value(iter, 0)
             if site_config.has_key("title"):
@@ -478,7 +490,7 @@ class Configurator:
             cell.set_property('text', title)
 
         def on_destroy(mozembed):
-            gtk.main_quit()
+            Gtk.main_quit()
 
         def on_start_site(button):
             site_config = self.get_selected_site_config()
@@ -503,63 +515,63 @@ class Configurator:
         def on_select(list):
             self.update_buttons_sensitivity()
 
-        sites_list_name_cell = gtk.CellRendererText()
-        sites_list_name_col = gtk.TreeViewColumn("Sites", sites_list_name_cell)
+        sites_list_name_cell = Gtk.CellRendererText()
+        sites_list_name_col = Gtk.TreeViewColumn("Sites", sites_list_name_cell)
         sites_list_name_col.set_cell_data_func(sites_list_name_cell, name_func)
-        self.sites_list = gtk.TreeView()
+        self.sites_list = Gtk.TreeView()
         self.sites_list.append_column(sites_list_name_col)
         self.sites_list.connect("cursor-changed", on_select)
-        scrolledwindow = gtk.ScrolledWindow()
+        scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.set_size_request(200, 300)
         scrolledwindow.add(self.sites_list)
         
-        self.start_button = gtk.Button("Start")
+        self.start_button = Gtk.Button("Start")
         self.start_button.connect("clicked", on_start_site)
         
-        self.edit_button = gtk.Button("Properties")
+        self.edit_button = Gtk.Button("Properties")
         self.edit_button.connect("clicked", on_edit_site)
         
-        self.config_button = gtk.Button("Mozilla Config")
-        self.config_button.connect("clicked", on_config_site)
+        #self.config_button = Gtk.Button("Mozilla Config")
+        #self.config_button.connect("clicked", on_config_site)
         
-        self.delete_button = gtk.Button("Delete")
+        self.delete_button = Gtk.Button("Delete")
         self.delete_button.connect("clicked", on_delete_site)
         
-        add_button = gtk.Button("New Site")
+        add_button = Gtk.Button("New Site")
         add_button.connect("clicked", on_add_site)
 
-        buttons_box = gtk.VBox()
+        buttons_box = Gtk.VBox()
         buttons_box.set_spacing(5)
         buttons_box.pack_start(self.start_button, False, False, 10)
-        buttons_box.pack_start(self.edit_button, False, False)
-        buttons_box.pack_start(self.config_button, False, False)
-        buttons_box.pack_start(self.delete_button, False, False)
+        buttons_box.pack_start(self.edit_button, False, False, 0)
+        #buttons_box.pack_start(self.config_button, False, False, 0)
+        buttons_box.pack_start(self.delete_button, False, False, 0)
         buttons_box.pack_start(add_button, False, False, 10)
 
-        main_box = gtk.HBox()
-        main_box.pack_start(scrolledwindow, True, True)
+        main_box = Gtk.HBox()
+        main_box.pack_start(scrolledwindow, True, True, 0)
         main_box.pack_start(buttons_box, False, True, 10)
 
-        self.win = gtk.Window()
+        self.win = Gtk.Window()
         self.win.set_title("Kadro")
-        self.win.set_position(gtk.WIN_POS_CENTER)
+        #self.win.set_position(Gtk.WIN_POS_CENTER)
         self.win.set_border_width(10)
         self.win.add(main_box)
         self.win.connect("destroy", on_destroy)
         self.win.show_all()
         
         self.update_sites_list()
-        gtk.main()
+        Gtk.main()
     
     def update_buttons_sensitivity(self):
         sensitive = self.get_selected_site_config() != None
         self.start_button.set_sensitive(sensitive)
         self.edit_button.set_sensitive(sensitive)
-        self.config_button.set_sensitive(sensitive)
+        #self.config_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
         
     def update_sites_list(self):
-        self.sites_list_model = gtk.ListStore(object)
+        self.sites_list_model = Gtk.ListStore(object)
         site_configs = config.load_site_configs()
         for site_config in site_configs:
             self.sites_list_model.append([site_config])
