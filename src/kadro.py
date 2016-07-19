@@ -6,8 +6,8 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk
 from gi.repository import WebKit2
-#import pygtk
-#import gobject
+from gi.repository.GdkPixbuf import Pixbuf, InterpType
+
 import json
 import shutil
 import stat
@@ -318,7 +318,7 @@ class SiteConfigurator:
         
     def start(self):
         def on_cancel(button):
-            self.win.hide_all()
+            self.win.hide()
             
         def on_save(button):
             for entry in self.entries:
@@ -335,7 +335,7 @@ class SiteConfigurator:
                     return                
             config.save_site_config(self.site_config, self.icon_path)
             
-            self.win.hide_all()
+            self.win.hide()
             self.save_callback()
         
         def on_title_entry_focus_out(title_entry, event):
@@ -370,42 +370,42 @@ class SiteConfigurator:
         if not name_readonly:
             title_extension_func = title_extension
         
-        self.entries_table = gtk.Table(columns=2, homogeneous=False)
+        self.entries_table = Gtk.Table(columns=2, homogeneous=False)
         self.entries_table.set_col_spacing(0, 10)
         self.append_entry("Title", "title", extension_func=title_extension_func)
         self.append_entry("URL", "url")
         self.append_entry("Name", "name", readonly=name_readonly, extension_func=name_extension)
         self.append_icon_editor()
         
-        cancel_button = gtk.Button("Cancel")
+        cancel_button = Gtk.Button("Cancel")
         cancel_button.connect("clicked", on_cancel)
         
-        save_button = gtk.Button("Save")
+        save_button = Gtk.Button("Save")
         save_button.connect("clicked", on_save)
         
-        buttons_box = gtk.HBox()
-        buttons_box.pack_end(save_button, False, False)
+        buttons_box = Gtk.HBox()
+        buttons_box.pack_end(save_button, False, False, 0)
         buttons_box.pack_end(cancel_button, False, False, 10)
         
-        main_box = gtk.VBox()
+        main_box = Gtk.VBox()
         main_box.pack_start(self.entries_table, True, True, 0)
         main_box.pack_start(buttons_box, False, False, 10)
         
-        self.win = gtk.Window()
+        self.win = Gtk.Window()
         self.win.set_title(title_prefix + " - Kadro")
-        self.win.set_position(gtk.WIN_POS_CENTER)
+        self.win.set_position(Gtk.WindowPosition.CENTER)
         self.win.set_border_width(10)
         self.win.add(main_box)
         self.win.show_all()
 
     def append_icon_editor(self):
-        label = gtk.Label("Icon")
+        label = Gtk.Label("Icon")
         
         site = None
         if self.site_config.has_key("name"):
             site = self.site_config["name"]
         
-        image = gtk.Image()        
+        image = Gtk.Image()
         image.set_size_request(48, 48)
         
         if site:
@@ -413,15 +413,15 @@ class SiteConfigurator:
 
         def update_image():        
             if self.icon_path:
-                image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.icon_path).scale_simple(48, 48, gtk.gdk.INTERP_BILINEAR))
+                image.set_from_pixbuf(Pixbuf.new_from_file(self.icon_path).scale_simple(48, 48, InterpType.BILINEAR))
 
         update_image()
 
         def on_select_icon(button):
-            dialog = gtk.FileChooserDialog("Open..", self.win, gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-            dialog.set_default_response(gtk.RESPONSE_OK)
+            dialog = Gtk.FileChooserDialog("Open..", self.win, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+            dialog.set_default_response(Gtk.ResponseType.OK)
 
-            filter = gtk.FileFilter()
+            filter = Gtk.FileFilter()
             filter.set_name("Images")
             filter.add_mime_type("image/png")
             filter.add_mime_type("image/jpeg")
@@ -444,17 +444,17 @@ class SiteConfigurator:
                 dialog.add_shortcut_folder(usr_share_icons_path)
             
             response = dialog.run()
-            if response == gtk.RESPONSE_OK:
+            if response == Gtk.ResponseType.OK:
                 self.icon_path = dialog.get_filename()
                 update_image()
             dialog.destroy()
         
-        button = gtk.Button()
+        button = Gtk.Button()
         button.set_image(image)
         button.connect("clicked", on_select_icon)
 
-        box = gtk.HBox()
-        box.pack_start(button, False, False)
+        box = Gtk.HBox()
+        box.pack_start(button, False, False, 0)
         
         row = self.last_entry_row + 1
         self.entries_table.attach(label, 0, 1, row, row + 1)
@@ -462,9 +462,9 @@ class SiteConfigurator:
         self.last_entry_row = row
 
     def append_entry(self, label_text, property_name, readonly=False, extension_func=None):
-        label = gtk.Label(label_text)
+        label = Gtk.Label(label_text)
         
-        entry = gtk.Entry()
+        entry = Gtk.Entry()
         entry.set_width_chars(80)
         entry.set_sensitive(not readonly)
         entry.site_config_property_name = property_name
