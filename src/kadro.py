@@ -3,6 +3,7 @@
 import os
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk
 from gi.repository import WebKit2
 #import pygtk
@@ -13,7 +14,7 @@ import stat
 import webbrowser
 
 class Config:
-    
+
     work_dir = os.getenv("HOME") + "/.kadro"
     sites_dir = work_dir + "/sites"
     icons_dir = os.getenv("HOME") + "/.icons"
@@ -21,6 +22,7 @@ class Config:
     def __init__(self):
         if not os.path.exists(self.work_dir):
             os.mkdir(self.work_dir)
+        print("Dir: " + self.work_dir)
         if not os.path.exists(self.sites_dir):
             os.mkdir(self.sites_dir)
 
@@ -57,7 +59,7 @@ class Config:
         if os.path.exists(file):
             return file
         return None
-    
+
     def has_site(self, site):
         site_dir = self.get_site_dir(site)
         return os.path.exists(site_dir)
@@ -70,7 +72,7 @@ class Config:
         config_file = open(config_file_path)
         data = json.load(config_file)
         config_file.close()
-        
+
         data["name"] = site
         data["persistant"] = True
 
@@ -85,34 +87,34 @@ class Config:
             print("Upgrading site config: " + config_file_path)
             self.save_site_config(data, None)
             os.remove(oldstarter)
-        
+
         return data
-    
+
     def load_site_configs(self):
         configs = []
         for file in os.listdir(self.sites_dir):
             config = self.load_site_config(file)
             configs.append(config)
         return configs
-    
+
     def save_site_config(self, site_config, new_icon_path):
         site = site_config["name"]
         site_dir = self.get_site_dir(site)
         if not os.path.exists(site_dir):
             os.mkdir(site_dir)
-        
+
         config_file_path = site_dir + "/config.json"
         print "Saving site: " + config_file_path
         with open(config_file_path, mode='w') as file:
             json.dump(site_config, file)
-        
+
         starter_file_path = self.get_starter_file_path(site)
         with open(starter_file_path, mode='w') as file:
             file.write("#! /usr/bin/python\n")
             file.write("import kadro\n")
             file.write("kadro.startbrowser('" + site + "')\n")
         os.chmod(starter_file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IROTH)
-        
+
         if new_icon_path:
             tmp_file = site_dir + "/icon.tmp"
             shutil.copyfile(new_icon_path, tmp_file)
@@ -137,7 +139,7 @@ class Config:
                 os.remove(file)
             suffix = os.path.splitext(new_icon_path)[1];
             os.rename(tmp_file, self.icons_dir + "/" + icon_name + suffix)
-        
+
         launcher_file_path = self.get_launcher_file_path(site)
         with open(launcher_file_path, mode='w') as file:
             file.write("[Desktop Entry]\n")
@@ -176,23 +178,23 @@ class Config:
 
 
 class Browser:
-    
+
     # http://www.eurion.net/python-snippets/snippet/Webkit%20Browser.html
     # http://webkitgtk.org/reference/webkitgtk/stable/
     # http://webkitgtk.org/reference/webkit2gtk/stable/WebKitCookieManager.html#webkit-cookie-manager-set-persistent-storage
-    
+
     site = None
     site_config = {}
     title = None
     url = None
     width = None
     height = None
-            
+
     def __init__(self, site):
         self.site = site
-    
+
     def start(self):
-        
+
         def on_destroy(mozembed):
             Gtk.main_quit()
 
@@ -209,7 +211,7 @@ class Browser:
         def on_open_uri(mozembed, uri):
             print "Requested URI: " + uri
             return False
-        
+
         def on_new_window(mozembed, retval, chromemask):
             print "on_new_window(" + str(mozembed) + ", " + str(retval) + ", " + str(chromemask) + ")"
             url = mozembed.get_link_message()
@@ -224,7 +226,7 @@ class Browser:
 
         print "Starting site: " + site_dir
         self.updateSelf()
-        
+
         # TODO gtkmozembed.set_profile_path(site_dir, "profile")
         #webkit.set_web_database_directory_path(site_dir+"/profile")
         #cookiejar = libsoup.soup_cookie_jar_text_new(site_dir+'/cookies.txt',False)
@@ -236,12 +238,19 @@ class Browser:
         #session.add_feature(cookiejar)
 
         #print webkit.WebView.__doc__
-        
+
         self.web_view = WebKit2.WebView()
-        #print self.web_view.__doc__
+
+        web_context = self.web_view.get_context();
+        data_manager =  web_context.get_website_data_manager()
+        cookie_manager = web_context.get_cookie_manager()
+        cookie_manager.set_persistent_storage(site_dir+"/cookies.txt", WebKit2.CookiePersistentStorage.TEXT)
+        print "****"
+        #print "debug-1: " + cookie_manager.get_persistent_storage()
+        print "****"
         #print dir(webkit)
         self.web_view.load_uri(self.url)
-        
+
         #self.mozembed.connect("open-uri", on_open_uri)
         #self.mozembed.connect("new-window", on_new_window)
 
@@ -261,26 +270,26 @@ class Browser:
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
         self.win.show_all()
-        
+
         Gtk.main()
-        
-        
+
+
     def updateSelf(self):
         if not self.site:
             raise "self.site not set"
 
         self.site_config = config.load_site_config(self.site)
-        
+
         if not self.url and self.site_config.has_key("url"):
             self.url = self.site_config["url"]
         if not self.url:
             raise "URL not defined for site " + self.site
-            
+
         if not self.title and self.site_config.has_key("title"):
             self.title = self.site_config["title"]
         if not self.title:
             self.title = self.site
-        
+
         if not self.width and self.site_config.has_key("width"):
             self.width = self.site_config["width"]
         if not self.width:
@@ -293,10 +302,10 @@ class Browser:
 
 
 class SiteConfigurator:
-    
+
     site_config = {}
     save_callback = None
-    
+
     entries = []
     entries_table = None
     last_entry_row = 0
@@ -617,10 +626,11 @@ def showerror(parent, message):
     md.run()
     md.destroy()  
 
-    
+
 print "Initializing Kadro"
 config = Config()
 
 args = parseargs()
 
 mozconfig = args.config
+

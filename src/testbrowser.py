@@ -1,4 +1,4 @@
 #! /usr/bin/python
 
 import kadro
-kadro.startbrowser('googleplus')
+kadro.startbrowser('organizanto')

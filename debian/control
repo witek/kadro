@@ -8,7 +8,7 @@ Homepage: https://github.com/witek/kadro
 
 Package: kadro
 Architecture: all
-Depends: python (>= 2.6), gir1.2-webkit2-3.0
+Depends: python (>= 2.7), gir1.2-webkit2-4.0
 Description: Kadro creates launchers which start a simple window for a specified website
  Kadro provides a user interface which one can use to create launchers
  for websites. These launchers start a simplified browser which contains

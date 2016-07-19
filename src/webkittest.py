@@ -2,6 +2,10 @@
 
 # deb: gir1.2-webkit2-3.0
 
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('WebKit2', '4.0')
+
 from gi.repository import WebKit2
 from gi.repository import Gtk
 
