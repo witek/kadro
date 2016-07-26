@@ -227,45 +227,21 @@ class Browser:
         print "Starting site: " + site_dir
         self.updateSelf()
 
-        # TODO gtkmozembed.set_profile_path(site_dir, "profile")
-        #webkit.set_web_database_directory_path(site_dir+"/profile")
-        #cookiejar = libsoup.soup_cookie_jar_text_new(site_dir+'/cookies.txt',False)
-
-        #from gi.repository import Soup
-        #cookiejar = Soup.CookieJarText.new(site_dir + "/cookies.txt", False)
-        #cookiejar.set_accept_policy(Soup.CookieJarAcceptPolicy.ALWAYS)
-        #session = WebKit.get_default_session()
-        #session.add_feature(cookiejar)
-
-        #print webkit.WebView.__doc__
-
         self.web_view = WebKit2.WebView()
 
         web_context = self.web_view.get_context();
         data_manager =  web_context.get_website_data_manager()
         cookie_manager = web_context.get_cookie_manager()
         cookie_manager.set_persistent_storage(site_dir+"/cookies.txt", WebKit2.CookiePersistentStorage.TEXT)
-        print "****"
-        #print "debug-1: " + cookie_manager.get_persistent_storage()
-        print "****"
-        #print dir(webkit)
         self.web_view.load_uri(self.url)
-
-        #self.mozembed.connect("open-uri", on_open_uri)
-        #self.mozembed.connect("new-window", on_new_window)
-
-        #scroll_window = Gtk.ScrolledWindow(None, None)
-        #scroll_window.add(self.web_view)
 
         self.win = Gtk.Window()
         self.win.set_title(self.title)
         self.win.set_default_size(self.width, self.height)
-        #self.win.set_position(Gtk.WIN_POS_CENTER)
         icon_path = config.get_site_icon_path(self.site)
         if icon_path:
             self.win.set_icon_from_file(icon_path)
         self.win.set_icon_name(config.get_site_icon_name(self.site))
-        #self.win.add(scroll_window)
         self.win.add(self.web_view)
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
