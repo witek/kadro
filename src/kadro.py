@@ -149,7 +149,7 @@ class Config:
             file.write("Exec=" + starter_file_path + "\n")
             file.write("Categories=Network;\n")
             file.write("Type=Application\n")
-    
+
     def delete_site(self, site):
         site_dir = self.get_site_dir(site)
         print "Deleting site: " + site_dir
@@ -157,7 +157,7 @@ class Config:
         launcher_file_path = self.get_launcher_file_path(site)
         if os.path.exists(launcher_file_path):
             os.remove(launcher_file_path)
-        
+
         if not os.path.exists(site_dir):
             return
         tmp_dir = self.work_dir + "/tmp"
@@ -311,15 +311,15 @@ class SiteConfigurator:
     last_entry_row = 0
     name_entry = None
     icon_path = None
-    
+
     def __init__(self, site_config, save_callback):
         self.site_config = site_config
         self.save_callback = save_callback
-        
+
     def start(self):
         def on_cancel(button):
             self.win.hide()
-            
+
         def on_save(button):
             for entry in self.entries:
                 value = entry.get_text()
@@ -332,12 +332,12 @@ class SiteConfigurator:
             site = self.site_config["name"]
             if (not self.site_config.has_key("persistant")) and config.has_site(site):
                     showerror(self.win, 'Site with the name "' + site + '" already exists.')
-                    return                
+                    return
             config.save_site_config(self.site_config, self.icon_path)
-            
+
             self.win.hide()
             self.save_callback()
-        
+
         def on_title_entry_focus_out(title_entry, event):
             text = self.name_entry.get_text()
             if text and text.strip() != "":
@@ -354,13 +354,13 @@ class SiteConfigurator:
             text = text.replace('\\', '')
             text = text.replace(':', '')
             self.name_entry.set_text(text)
-        
+
         def title_extension(title_entry):
             title_entry.connect("focus-out-event", on_title_entry_focus_out)
-            
+
         def name_extension(name_entry):
             self.name_entry = name_entry
-        
+
         title_prefix = "New site"
         if self.site_config.has_key("title"):
             title_prefix = self.site_config["title"]
@@ -369,28 +369,28 @@ class SiteConfigurator:
         title_extension_func = None
         if not name_readonly:
             title_extension_func = title_extension
-        
+
         self.entries_table = Gtk.Table(columns=2, homogeneous=False)
         self.entries_table.set_col_spacing(0, 10)
         self.append_entry("Title", "title", extension_func=title_extension_func)
         self.append_entry("URL", "url")
         self.append_entry("Name", "name", readonly=name_readonly, extension_func=name_extension)
         self.append_icon_editor()
-        
+
         cancel_button = Gtk.Button("Cancel")
         cancel_button.connect("clicked", on_cancel)
-        
+
         save_button = Gtk.Button("Save")
         save_button.connect("clicked", on_save)
-        
+
         buttons_box = Gtk.HBox()
         buttons_box.pack_end(save_button, False, False, 0)
         buttons_box.pack_end(cancel_button, False, False, 10)
-        
+
         main_box = Gtk.VBox()
         main_box.pack_start(self.entries_table, True, True, 0)
         main_box.pack_start(buttons_box, False, False, 10)
-        
+
         self.win = Gtk.Window()
         self.win.set_title(title_prefix + " - Kadro")
         self.win.set_position(Gtk.WindowPosition.CENTER)
@@ -400,18 +400,18 @@ class SiteConfigurator:
 
     def append_icon_editor(self):
         label = Gtk.Label("Icon")
-        
+
         site = None
         if self.site_config.has_key("name"):
             site = self.site_config["name"]
-        
+
         image = Gtk.Image()
         image.set_size_request(48, 48)
-        
+
         if site:
             self.icon_path = config.get_site_icon_path(site)
 
-        def update_image():        
+        def update_image():
             if self.icon_path:
                 image.set_from_pixbuf(Pixbuf.new_from_file(self.icon_path).scale_simple(48, 48, InterpType.BILINEAR))
 
@@ -435,27 +435,27 @@ class SiteConfigurator:
             filter.add_pattern("*.xpm")
             filter.add_pattern("*.svg")
             dialog.add_filter(filter)
-            
+
             if self.icon_path:
                 dialog.set_filename(self.icon_path)
-            
+
             usr_share_icons_path = "/usr/share/icons"
             if os.path.exists(usr_share_icons_path):
                 dialog.add_shortcut_folder(usr_share_icons_path)
-            
+
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
                 self.icon_path = dialog.get_filename()
                 update_image()
             dialog.destroy()
-        
+
         button = Gtk.Button()
         button.set_image(image)
         button.connect("clicked", on_select_icon)
 
         box = Gtk.HBox()
         box.pack_start(button, False, False, 0)
-        
+
         row = self.last_entry_row + 1
         self.entries_table.attach(label, 0, 1, row, row + 1)
         self.entries_table.attach(box, 1, 2, row, row + 1)
@@ -463,7 +463,7 @@ class SiteConfigurator:
 
     def append_entry(self, label_text, property_name, readonly=False, extension_func=None):
         label = Gtk.Label(label_text)
-        
+
         entry = Gtk.Entry()
         entry.set_width_chars(80)
         entry.set_sensitive(not readonly)
@@ -474,20 +474,20 @@ class SiteConfigurator:
         if extension_func:
             extension_func(entry)
         self.entries.append(entry)
-        
+
         row = self.last_entry_row + 1
         self.entries_table.attach(label, 0, 1, row, row + 1)
         self.entries_table.attach(entry, 1, 2, row, row + 1)
         self.last_entry_row = row
 
 class Configurator:
-    
+
     sites_list = None
     sites_list_model = None
     edit_button = None
     config_button = None
     delete_button = None
-    
+
     def start(self):
         print "Starting configurator"
 
@@ -507,12 +507,12 @@ class Configurator:
 
         def on_config_site(button):
             site_config = self.get_selected_site_config()
-            config.start_site(site_config["name"], config_mode=True)            
+            config.start_site(site_config["name"], config_mode=True)
 
         def on_edit_site(button):
             site_config = self.get_selected_site_config()
             SiteConfigurator(site_config, self.update_sites_list).start()
-            
+
         def on_delete_site(button):
             site_config = self.get_selected_site_config()
             config.delete_site(site_config["name"])
@@ -533,19 +533,19 @@ class Configurator:
         scrolledwindow = Gtk.ScrolledWindow()
         scrolledwindow.set_size_request(200, 300)
         scrolledwindow.add(self.sites_list)
-        
+
         self.start_button = Gtk.Button("Start")
         self.start_button.connect("clicked", on_start_site)
-        
+
         self.edit_button = Gtk.Button("Properties")
         self.edit_button.connect("clicked", on_edit_site)
-        
+
         #self.config_button = Gtk.Button("Mozilla Config")
         #self.config_button.connect("clicked", on_config_site)
-        
+
         self.delete_button = Gtk.Button("Delete")
         self.delete_button.connect("clicked", on_delete_site)
-        
+
         add_button = Gtk.Button("New Site")
         add_button.connect("clicked", on_add_site)
 
@@ -568,17 +568,17 @@ class Configurator:
         self.win.add(main_box)
         self.win.connect("destroy", on_destroy)
         self.win.show_all()
-        
+
         self.update_sites_list()
         Gtk.main()
-    
+
     def update_buttons_sensitivity(self):
         sensitive = self.get_selected_site_config() != None
         self.start_button.set_sensitive(sensitive)
         self.edit_button.set_sensitive(sensitive)
         #self.config_button.set_sensitive(sensitive)
         self.delete_button.set_sensitive(sensitive)
-        
+
     def update_sites_list(self):
         self.sites_list_model = Gtk.ListStore(object)
         site_configs = config.load_site_configs()
@@ -593,7 +593,7 @@ class Configurator:
             return None
         site_config = self.sites_list_model.get_value(iter, 0)
         return site_config
-        
+
 
 def parseargs():
     import argparse
@@ -624,7 +624,7 @@ def showerror(parent, message):
     print "ERROR: " + message
     md = gtk.MessageDialog(parent, gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, message)
     md.run()
-    md.destroy()  
+    md.destroy()
 
 
 print "Initializing Kadro"
@@ -633,4 +633,3 @@ config = Config()
 args = parseargs()
 
 mozconfig = args.config
-
