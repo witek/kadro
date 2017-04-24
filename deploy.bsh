@@ -1,0 +1,3 @@
+#!/bin/bash -e
+
+scp build/*.deb witek@r2.servisto.de:/var/www/servisto.de/projects/kadro

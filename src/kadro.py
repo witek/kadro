@@ -222,12 +222,16 @@ class Browser:
             webbrowser.open(url)
             return None
 
+        def on_activate_link():
+            print "on_activate_link"
+
         site_dir = config.get_site_dir(self.site)
 
         print "Starting site: " + site_dir
         self.updateSelf()
 
         self.web_view = WebKit2.WebView()
+        # self.web_view.connect("activate-link", on_activate_link)
 
         web_context = self.web_view.get_context();
         data_manager =  web_context.get_website_data_manager()
@@ -243,6 +247,7 @@ class Browser:
             self.win.set_icon_from_file(icon_path)
         self.win.set_icon_name(config.get_site_icon_name(self.site))
         self.win.add(self.web_view)
+        # self.win.add(Gtk.LinkButton("http://www.gtk.org", "Visit GTK+ Homepage"))
         self.win.connect("destroy", on_destroy)
         self.win.connect('check-resize', on_resize)
         self.win.show_all()
