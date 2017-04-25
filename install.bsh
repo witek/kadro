@@ -1,0 +1,4 @@
+#!/bin/bash -e
+electron-packager --overwrite .
+cp -rv kadro-linux-x64/* /opt/kadro/
+

@@ -1,0 +1,9 @@
+{
+  "name": "kadro",
+  "version": "2.0.0",
+  "main": "main.js",
+  "description": "Container for isolated web applications.",
+  "devDependencies": {
+    "electron": "^1.6.6"
+  }
+}

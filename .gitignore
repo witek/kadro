@@ -1,3 +1,4 @@
 build
 *.pyc
-
+node_modules
+kadro-linux-*
