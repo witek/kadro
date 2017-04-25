@@ -2,13 +2,13 @@ Source: kadro
 Section: web
 Priority: extra
 Maintainer: Witoslaw Koczewski <wi@koczewski.de>
-Build-Depends: debhelper (>= 7), python-support
+Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.0
 Homepage: https://github.com/witek/kadro
 
 Package: kadro
 Architecture: all
-Depends: python (>= 2.7), gir1.2-webkit2-4.0
+Depends: 
 Description: Kadro creates launchers which start a simple window for a specified website
  Kadro provides a user interface which one can use to create launchers
  for websites. These launchers start a simplified browser which contains

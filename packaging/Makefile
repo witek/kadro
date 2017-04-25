@@ -1,21 +1,25 @@
-LIBDIR = $(DESTDIR)/usr/lib/python2.7
+LIBDIR = $(DESTDIR)/usr/lib/kadro
 BINDIR = $(DESTDIR)/usr/bin
 LAUNCHERDIR = $(DESTDIR)/usr/share/applications
 ICONSDIR = $(DESTDIR)/usr/share/icons
+
+build:
+
 clean:
-	rm -f *.py[co] */*.py[co]
+	rm -rf kadro-linux-x64
+
 install:
 	mkdir -p $(LIBDIR)
-	cp src/kadro.py $(LIBDIR)/kadro.py
+	cp -r kadro-linux-x64/* $(LIBDIR)
 	mkdir -p $(BINDIR)
-	cp src/kadro-configurator.py $(BINDIR)/kadro-configurator
+	ln -sf /usr/lib/kadro/kadro $(BINDIR)/kadro
 	mkdir -p $(LAUNCHERDIR)
 	cp kadro.desktop $(LAUNCHERDIR)/kadro.desktop
 	mkdir -p $(ICONSDIR)
 	cp kadro.svg $(ICONSDIR)/kadro.svg
+
 uninstall:
-	rm -f $(LIBDIR)/kadro.py[co]
-	rm -f $(BINDIR)/kadro-configurator
+	rm -rf $(LIBDIR)
+	rm -f $(BINDIR)/kadro
 	rm -f $(LAUNCHERDIR)/kadro.desktop
 	rm -f $(ICONSDIR)/kadro.svg
-	

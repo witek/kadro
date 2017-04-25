@@ -1,0 +1,12 @@
+#!/bin/bash -e
+
+rm -rf target
+mkdir target
+electron-packager --overwrite --out target electron-app
+
+DEBIANDIR=target/debuild
+mkdir $DEBIANDIR
+cp -r packaging/debian target/kadro-linux-x64 resources/* packaging/Makefile README LICENSE $DEBIANDIR
+
+cd $DEBIANDIR
+debuild
