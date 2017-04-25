@@ -1,4 +1,5 @@
 build
 *.pyc
+*.snap
 node_modules
 kadro-linux-*

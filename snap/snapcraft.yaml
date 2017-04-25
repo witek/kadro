@@ -1,0 +1,15 @@
+name: kadro # you probably want to 'snapcraft register <name>'
+version: '2.0' # just for humans, typically '1.2+git' or '1.3.2'
+summary: Web Application Container
+description: Creates and runs isolated applications for web pages.
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+apps:
+  kadro:
+    command: kadro
+
+parts:
+  kadro:
+    plugin: dump
+    source: kadro-linux-x64
