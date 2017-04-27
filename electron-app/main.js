@@ -45,11 +45,13 @@ function createWindow(config) {
     win = new BrowserWindow({title: config.title + " - Kadro",
                              width: config.width,
                              height: config.height,
+                             x: config.x,
+                             y: config.y,
                              webPreferences: {partition: "persist:" + config.name,
                                               sandbox: true,
-                                              //nodeIntegration: false,
-                                              //contextIsolation: true,
-                                              allowpopups: false}})
+                                              nodeIntegration: false,
+                                              contextIsolation: true,
+                                              center: false}})
 
     win.on('page-title-updated', (event, title) => {
         event.preventDefault()
@@ -61,6 +63,14 @@ function createWindow(config) {
         config.height = size[1]
         updateConfigFile(config)
     })
+
+    win.on('move', (event) => {
+        pos = win.getPosition()
+        config.x = pos[0]
+        config.y = pos[1]
+        updateConfigFile(config)
+    })
+
 
     win.on('closed', () => {
         win = null
