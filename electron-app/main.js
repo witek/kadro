@@ -11,6 +11,7 @@ let win
 const appConfigPath = app.getPath('userData')
 
 function openBrowser(url) {
+    console.log('opening: ' + url)
     shell.openExternal(url)
 }
 
@@ -44,10 +45,11 @@ function createWindow(config) {
     win = new BrowserWindow({title: config.title + " - Kadro",
                              width: config.width,
                              height: config.height,
-                             webPreferences: {nodeIntegration: false,
+                             webPreferences: {partition: "persist:" + config.name,
                                               sandbox: true,
-                                              partition: "persist:" + config.name,
-                                              contextIsolation: true}})
+                                              //nodeIntegration: false,
+                                              //contextIsolation: true,
+                                              allowpopups: false}})
 
     win.on('page-title-updated', (event, title) => {
         event.preventDefault()
@@ -67,8 +69,8 @@ function createWindow(config) {
     win.loadURL(config.url);
 
     win.webContents.on('new-window', (event, url) => {
-        event.preventDefault()
         openBrowser(url)
+        //event.preventDefault()
     })
 }
 
@@ -134,6 +136,16 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+let firstWindow = true
+
+app.on('browser-window-created', (event, window) => {
+    if (firstWindow) {
+        firstWindow = false
+        return
+    }
+    window.hide()
 })
 
 app.on('activate', () => {
