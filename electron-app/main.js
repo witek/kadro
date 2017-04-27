@@ -47,11 +47,13 @@ function createWindow(config) {
                              height: config.height,
                              x: config.x,
                              y: config.y,
+                             center: false,
                              webPreferences: {partition: "persist:" + config.name,
                                               sandbox: true,
                                               nodeIntegration: false,
                                               contextIsolation: true,
-                                              center: false}})
+                                              zoomFactor: config.zoomFactor,
+                                              }})
 
     win.on('page-title-updated', (event, title) => {
         event.preventDefault()
