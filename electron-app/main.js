@@ -7,6 +7,7 @@ const child_process = require('child_process')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let lastUrl = ""
 
 const appConfigPath = app.getPath('userData')
 
@@ -81,6 +82,8 @@ function createWindow(config) {
     win.loadURL(config.url);
 
     win.webContents.on('new-window', (event, url) => {
+        lastUrl = url
+        if (url.startsWith('https://accounts.google.com/')) return;
         openBrowser(url)
         //event.preventDefault()
     })
@@ -153,10 +156,14 @@ app.on('window-all-closed', () => {
 let firstWindow = true
 
 app.on('browser-window-created', (event, window) => {
+    if (lastUrl.startsWith('https://accounts.google.com/')) return;
+
     if (firstWindow) {
         firstWindow = false
         return
     }
+    console.log('window: ', window)
+    console.log('event: ', event)
     window.hide()
 })
 
