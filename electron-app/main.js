@@ -1,45 +1,45 @@
-const {app, BrowserWindow, shell} = require('electron')
-const path = require('path')
-// const url = require('url')
-const fs = require('fs')
-const child_process = require('child_process')
+const {app, BrowserWindow, shell} = require('electron');
+const path = require('path');
+// const url = require('url');
+const fs = require('fs');
+const child_process = require('child_process');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win
-let lastUrl = ""
+let win;
+let lastUrl = "";
 
-const appConfigPath = app.getPath('userData')
+const appConfigPath = app.getPath('userData');
 
 function openBrowser(url) {
-    console.log('opening: ' + url)
-    shell.openExternal(url)
+    console.log('opening: ' + url);
+    shell.openExternal(url);
 }
 
 function updateFile(filepath, content, executable) {
     if (fs.existsSync(filepath)) {
-        currentContent = fs.readFileSync(filepath)
+        currentContent = fs.readFileSync(filepath);
     } else {
         currentContent = null;
     }
-    if (currentContent == content) return
+    if (currentContent == content) return;
 
-    console.log('updating: ' + filepath)
+    console.log('updating: ' + filepath);
 
-    parentDir = path.normalize(filepath + '/../')
+    parentDir = path.normalize(filepath + '/../');
     if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir)
+        fs.mkdirSync(parentDir);
     }
 
-    fs.writeFileSync(filepath, content)
+    fs.writeFileSync(filepath, content);
     if (executable) {
         child_process.spawnSync('chmod', ['a+x', filepath]);
     }
 }
 
 function updateConfigFile(config) {
-    filepath = appConfigPath + '/sites/' + config.name + '.json'
-    updateFile(filepath, JSON.stringify(config), false)
+    filepath = appConfigPath + '/sites/' + config.name + '.json';
+    updateFile(filepath, JSON.stringify(config), false);
 }
 
 function createWindow(config) {
@@ -53,125 +53,124 @@ function createWindow(config) {
                                               sandbox: true,
                                               nodeIntegration: false,
                                               contextIsolation: true,
-                                              zoomFactor: config.zoomFactor,
-                                              }})
+                                              zoomFactor: config.zoomFactor
+                                             }});
 
     win.on('page-title-updated', (event, title) => {
-        event.preventDefault()
-    })
+        event.preventDefault();
+    });
 
     win.on('resize', (event) => {
-        size = win.getSize()
-        config.width = size[0]
-        config.height = size[1]
-        updateConfigFile(config)
-    })
+        size = win.getSize();
+        config.width = size[0];
+        config.height = size[1];
+        updateConfigFile(config);
+    });
 
     win.on('move', (event) => {
-        pos = win.getPosition()
-        config.x = pos[0]
-        config.y = pos[1]
-        updateConfigFile(config)
-    })
+        pos = win.getPosition();
+        config.x = pos[0];
+        config.y = pos[1];
+        updateConfigFile(config);
+    });
 
 
     win.on('closed', () => {
-        win = null
-    })
+        win = null;
+    });
 
     win.loadURL(config.url);
 
     win.webContents.on('new-window', (event, url) => {
-        lastUrl = url
+        lastUrl = url;
         if (url.startsWith('https://accounts.google.com/')) return;
-        openBrowser(url)
+        openBrowser(url);
         //event.preventDefault()
-    })
+    });
 }
 
 
 function writeStartScript(configName) {
-    filepath = app.getPath('home') + "/bin/" + configName
+    filepath = app.getPath('home') + "/bin/" + configName;
     script = "#!/bin/bash -e\n"
-        + "kadro " + configName
-    updateFile(filepath, script, true)
+        + "kadro " + configName;
+    updateFile(filepath, script, true);
 }
 
 function writeDesktopFile(config) {
-    filepath = app.getPath('home') + '/.local/share/applications/' + configName + '.desktop'
+    filepath = app.getPath('home') + '/.local/share/applications/' + configName + '.desktop';
     content = '[Desktop Entry]\n'
         + 'Name=' + config.title + '\n'
         + 'Comment=Open site with Kadro: ' + config.name + ' -> ' + config.url + '\n'
         + 'Icon=' + config.name + '\n'
         + 'Exec=' + app.getPath('home') + '/bin/' + config.name + '\n'
         + 'Categories=Network;\n'
-        + 'Type=Application'
-    updateFile(filepath, content, false)
+        + 'Type=Application';
+    updateFile(filepath, content, false);
 }
 
 function writeConfigFile(configName, filepath) {
     config = {name: configName,
               title: configName,
-              url: 'https://' + configName + '.com'}
-    updateFile(filepath, JSON.stringify(config), false)
+              url: 'https://' + configName + '.com'};
+    updateFile(filepath, JSON.stringify(config), false);
 }
 
 function start() {
-    argv = process.argv
-    configName = argv[argv.length-1]
+    argv = process.argv;
+    configName = argv[argv.length-1];
     if (argv.length < 2 || configName == null) {
-        console.log('Missing command line parameter: site-name')
-        app.quit()
+        console.log('Missing command line parameter: site-name');
+        app.quit();
         return;
     }
 
-    console.log("configName: " + configName)
+    console.log("configName: " + configName);
 
-    configFilePath = appConfigPath + '/sites/' + configName + '.json'
-    console.log("configFilePath: " + configFilePath)
+    configFilePath = appConfigPath + '/sites/' + configName + '.json';
+    console.log("configFilePath: " + configFilePath);
 
     if (!fs.existsSync(configFilePath)) {
-        writeConfigFile(configName, configFilePath)
+        writeConfigFile(configName, configFilePath);
     }
 
-    configData = fs.readFileSync(configFilePath)
-    config = JSON.parse(configData)
-    console.log("url: " + config.url)
+    configData = fs.readFileSync(configFilePath);
+    config = JSON.parse(configData);
+    console.log("url: " + config.url);
 
-    writeDesktopFile(config)
-    writeStartScript(configName)
+    writeDesktopFile(config);
+    writeStartScript(configName);
 
-    console.log('')
-    createWindow(config)
+    console.log('');
+    createWindow(config);
 }
 
-app.on('ready', start)
+app.on('ready', start);
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+      app.quit();
   }
-})
+});
 
-let firstWindow = true
+let firstWindow = true;
 
 app.on('browser-window-created', (event, window) => {
     if (lastUrl.startsWith('https://accounts.google.com/')) return;
 
     if (firstWindow) {
-        firstWindow = false
-        return
+        firstWindow = false;
+        return;
     }
-    console.log('window: ', window)
-    console.log('event: ', event)
-    window.hide()
-})
+    console.log('window: ', window);
+    console.log('event: ', event);
+    window.hide();
+});
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (win === null) {
-    createWindow()
+      createWindow();
   }
-})
-
+});
