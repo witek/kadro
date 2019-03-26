@@ -44,6 +44,7 @@ function updateConfigFile(config) {
 
 function createWindow(config) {
     win = new BrowserWindow({title: config.title + " - Kadro",
+                             icon: config.name,
                              width: config.width,
                              height: config.height,
                              x: config.x,
